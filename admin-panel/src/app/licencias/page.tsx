@@ -11,10 +11,10 @@ const statusColors:any = {
 
 export default function Licenses() {
   // Holds the list of organizations (mapped to license structure)
-  const [licenses, setLicenses] = useState([]);
+  const [licenses, setLicenses] = useState<any>([]);
   
   // State for new organization/license
-  const [newLicense, setNewLicense] = useState({
+  const [newLicense, setNewLicense] = useState<any>({
     company: "",
     email: "",
     team: "",
@@ -29,7 +29,7 @@ export default function Licenses() {
       .get("http://localhost:9090/api/company")
       .then((response) => {
         console.log(response.data);
-        const mapped = response.data.map((org) => ({
+        const mapped = response.data.map((org:any) => ({
           _id: org._id,
           company: org.name,
           email: org.organizationLeaderEmail,
@@ -44,9 +44,9 @@ export default function Licenses() {
   }, []);
 
   // Handle input change for the new organization form
-  const handleChange = (e) => {
+  const handleChange = (e:any) => {
     const { name, value } = e.target;
-    setNewLicense((prev) => ({ ...prev, [name]: value }));
+    setNewLicense((prev:any) => ({ ...prev, [name]: value }));
   };
 
   // Add a new organization using the POST endpoint
@@ -77,7 +77,7 @@ export default function Licenses() {
         expiryDate: "N/A",
         status: savedOrg.status === "active" ? "Activo" : "Pendiente",
       };
-      setLicenses((prev) => [...prev, newEntry]);
+      setLicenses((prev:any) => [...prev, newEntry]);
       // Reset the form state
       setNewLicense({
         company: "",
@@ -94,10 +94,10 @@ export default function Licenses() {
   };
 
   // Delete an organization using the DELETE endpoint
-  const handleDeleteLicense = async (id) => {
+  const handleDeleteLicense = async (id:any) => {
     try {
       await axios.delete(`http://localhost:9090/api/company/${id}`);
-      setLicenses((prev) => prev.filter((license) => license._id !== id));
+      setLicenses((prev:any) => prev.filter((license:any) => license._id !== id));
     } catch (err) {
       console.error("Error deleting organization:", err);
       alert("Error al eliminar la organización.");
@@ -105,9 +105,9 @@ export default function Licenses() {
   };
 
   // Totals by status for display in the header
-  const totalActive = licenses.filter((l) => l.status === "Activo").length;
-  const totalPending = licenses.filter((l) => l.status === "Pendiente").length;
-  const totalExpired = licenses.filter((l) => l.status === "Vencida").length;
+  const totalActive = licenses.filter((l:any) => l.status === "Activo").length;
+  const totalPending = licenses.filter((l:any) => l.status === "Pendiente").length;
+  const totalExpired = licenses.filter((l:any) => l.status === "Vencida").length;
 
   return (
     <div className="min-h-screen bg-gray-100 p-6 flex flex-col items-center">
@@ -174,7 +174,7 @@ export default function Licenses() {
               </tr>
             </thead>
             <tbody>
-              {licenses.map((license) => (
+              {licenses.map((license:any) => (
                 <tr key={license._id} className="border-b hover:bg-gray-50">
                   <td className="p-2">
                     <p className="font-medium">{license.company}</p>

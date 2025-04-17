@@ -30,16 +30,14 @@ ChartJS.register(
 
 const AdminStatsPage = () => {
   const { slug } = useParams(); // Get the challenge ID from the slug
-  const [challenge, setChallenge] = useState(null);
+  const [challenge, setChallenge] = useState<any>(null);
   const [challengeProgress, setChallengeProgress] = useState(null);
-  const [ruleProgress, setRuleProgress] = useState({
-    labels: [],
-    datasets: [{ data: [] }],
-  });
-  const [cycleStats, setCycleStats] = useState(null);
+  const [ruleProgress, setRuleProgress] = useState<any>(null);
+  const [ruleMapping, setRuleMapping] = useState([]); // Stores the original rule data for mapping
+  const [cycleStats, setCycleStats] = useState<any>(null);
   const [selectedCycle, setSelectedCycle] = useState("1"); // Default to cycle 1
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<any>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -61,12 +59,15 @@ const AdminStatsPage = () => {
           `http://localhost:9090/api/analisis/ruleProgress?challengeId=${slug}&ciclo=${selectedCycle}`
         );
         const ruleData = ruleRes.data;
+        // Save the original rule data for our mapping table
+        setRuleMapping(ruleData);
+        // Set the chart labels to numeric indices
         setRuleProgress({
-          labels: ruleData.map((item) => item.description),
+          labels: ruleData.map((_:any, index:any) => `${index + 1}`),
           datasets: [
             {
               label: "Comportamientos",
-              data: ruleData.map((item) => item.accomplishmentPercentage),
+              data: ruleData.map((item:any) => item.accomplishmentPercentage),
               backgroundColor: "rgba(75, 192, 192, 0.2)",
               borderColor: "rgba(75, 192, 192, 1)",
               borderWidth: 1,
@@ -80,13 +81,13 @@ const AdminStatsPage = () => {
         );
         const cycleData = cycleRes.data;
         setCycleStats({
-          labels: cycleData.map((item) => `Ciclo ${item.ciclo}`),
+          labels: cycleData.map((item:any) => `Ciclo ${item.ciclo}`),
           datasets: [
             {
               label: "Promedio de Desempeño",
-              data: cycleData.map((item) => item.accomplishmentPercentage),
+              data: cycleData.map((item:any) => item.accomplishmentPercentage),
               fill: false,
-              borderColor: "rgba(75, 192, 192, 1)",
+              borderColor: "rgba(75, 192, 192, 192)",
               tension: 0.1,
             },
           ],
@@ -101,7 +102,7 @@ const AdminStatsPage = () => {
     };
 
     fetchData();
-  }, [slug, selectedCycle]); // Refetch data when the selected cycle changes
+  }, [slug, selectedCycle]); 
 
   if (loading) {
     return <div className="p-6">Cargando...</div>;
@@ -125,16 +126,16 @@ const AdminStatsPage = () => {
 
       {/* Cycle Selector */}
       <div className="mb-6">
-        <label htmlFor="cycle-select" className="block text-sm font-medium text-gray-700">
+        <label htmlFor="cycle-select" className="block text-sm font-medium text-gray-700 ">
           Seleccionar Ciclo
         </label>
         <select
           id="cycle-select"
           value={selectedCycle}
           onChange={(e) => setSelectedCycle(e.target.value)}
-          className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+          className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-1 border-gray-400  focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
         >
-          {challenge.cycles.map((cycle) => (
+          {challenge.cycles.map((cycle:any) => (
             <option key={cycle.ciclo} value={cycle.ciclo}>
               Ciclo {cycle.ciclo}
             </option>
@@ -168,29 +169,53 @@ const AdminStatsPage = () => {
       <div className="mb-10">
         <h2 className="text-lg font-semibold mb-4">Comportamientos</h2>
         {ruleProgress?.datasets[0]?.data.length > 0 ? (
-          <Bar
-            data={ruleProgress}
-            options={{
-              responsive: true,
-              plugins: {
-                legend: { display: false },
-                title: { display: true, text: "Comportamientos" },
-              },
-              scales: {
-                y: { beginAtZero: true, max: 100 },
-              },
-            }}
-          />
+          <>
+            <Bar
+              data={ruleProgress}
+              options={{
+                responsive: true,
+                plugins: {
+                  legend: { display: false },
+                  title: { display: true, text: "Comportamientos" },
+                },
+                scales: {
+                  y: { beginAtZero: true, max: 100 },
+                },
+              }}
+            />
+            {/* Legend Table for Rule Descriptions */}
+            <div className="mt-4">
+              <h3 className="text-md font-medium mb-2">Leyenda de Comportamientos</h3>
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead>
+                  <tr>
+                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Ínidce
+                    </th>
+                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Descripción
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {ruleMapping.map((item:any, index) => (
+                    <tr key={index}>
+                      <td className="px-4 py-2 whitespace-nowrap">{index + 1}</td>
+                      <td className="px-4 py-2 whitespace">{item.description}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
         ) : (
           <p>No hay datos disponibles.</p>
         )}
       </div>
 
-      {/* Line Chart: Ciclos */}
+      {/* Line Chart: Promedio de Desempeño por Ciclo */}
       <div className="mb-10">
-        <h2 className="text-lg font-semibold mb-4">
-          Promedio de Desempeño por Ciclo
-        </h2>
+        <h2 className="text-lg font-semibold mb-4">Promedio de Desempeño por Ciclo</h2>
         {cycleStats ? (
           <Line
             data={cycleStats}

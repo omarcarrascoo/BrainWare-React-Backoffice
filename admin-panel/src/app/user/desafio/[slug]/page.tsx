@@ -1,94 +1,135 @@
-"use client"
-import { useState, useEffect } from "react";
+"use client";
+
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import axios from "axios";
 
-const ChallengeLog = () => {
+// Interfaces de datos
+interface Rule {
+  _id: string;
+  description: string;
+  points: number;
+}
+
+interface CompletedRuleEntry {
+  rule: { _id: string };
+  status: "HECHO" | "NA" | string;
+}
+
+interface ProgressEntry {
+  date: string;
+  completedRules: CompletedRuleEntry[];
+}
+
+interface Challenge {
+  _id: string;
+  title: string;
+  startDate: string;
+  endDate: string;
+  logoUrl?: string;
+  rules: Rule[];
+  progress?: ProgressEntry[];
+}
+
+interface BehaviorRow extends Rule {
+  value: string;
+  status: string;
+  color: string;
+}
+
+const ChallengeLog: React.FC = () => {
   const router = useRouter();
-  // Extract the slug from the URL query parameters (e.g., /admin/[slug])
-  const { slug } = useParams();
+  const params = useParams() as { slug?: string | string[] };
+  const rawSlug = params.slug;
+  const slug = typeof rawSlug === "string" ? rawSlug : Array.isArray(rawSlug) ? rawSlug[0] : undefined;
 
-  // State to hold the challenge data, behaviors for the selected day, current date, and loading state
-  const [challenge, setChallenge] = useState(null);
-  const [behaviors, setBehaviors] = useState([]);
-  const [currentDate, setCurrentDate] = useState(() =>
-    new Date().toISOString().slice(0, 10)
+  const [challenge, setChallenge] = useState<Challenge | null>(null);
+  const [behaviors, setBehaviors] = useState<BehaviorRow[]>([]);
+  const [currentDate, setCurrentDate] = useState<string>(
+    () => new Date().toISOString().slice(0, 10)
   );
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState<boolean>(true);
 
-  // Fetch the challenge details (including progress and rules) using the slug
+  // Fetch challenge
   useEffect(() => {
-    if (slug) {
-      axios
-        .get(`http://localhost:9090/api/challenges/${slug}`)
-        .then((response) => {
-          setChallenge(response.data);
-          setLoading(false);
-        })
-        .catch((err) => {
-          console.error("Error fetching challenge:", err);
-          setLoading(false);
-        });
+    if (!slug) {
+      setLoading(false);
+      return;
     }
+
+    axios
+      .get<Challenge>(`http://localhost:9090/api/challenges/${encodeURIComponent(slug)}`)
+      .then((res) => {
+        setChallenge(res.data);
+      })
+      .catch((err) => {
+        console.error("Error fetching challenge:", err);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   }, [slug]);
 
-  // Update the behaviors for the currently selected date.
+  // Compute behaviors for the current date
   useEffect(() => {
-    if (challenge && challenge.rules) {
-      const progressForDate = challenge.progress?.find(
-        (p) => p.date.slice(0, 10) === currentDate
+    if (!challenge) return;
+
+    const progressForDate = challenge.progress?.find(
+      (p) => p.date.slice(0, 10) === currentDate
+    );
+
+    const rows: BehaviorRow[] = challenge.rules.map((rule) => {
+      const completed = progressForDate?.completedRules.find(
+        (cr) => cr.rule._id === rule._id
       );
-      const behaviorsForDate = challenge.rules.map((rule) => {
-        const completedRule = progressForDate?.completedRules.find(
-          (cr) => cr.rule._id === rule._id
-        );
-        return {
-          ...rule,
-          value: rule.points + "%", // assuming each rule has a "points" property
-          status: completedRule ? completedRule.status : "FALLO",
-          color: completedRule
-            ? completedRule.status === "HECHO"
-              ? "bg-green-500"
-              : "bg-red-500"
-            : "bg-gray-800",
-        };
-      });
-      setBehaviors(behaviorsForDate);
-    }
+      const status = completed?.status ?? "FALLO";
+      const color =
+        status === "HECHO"
+          ? "bg-green-500"
+          : status === "NA"
+          ? "bg-gray-800"
+          : "bg-red-500";
+
+      return {
+        ...rule,
+        value: `${rule.points}%`,
+        status,
+        color,
+      };
+    });
+
+    setBehaviors(rows);
   }, [challenge, currentDate]);
 
-  // Function to change the current date (for navigation)
-  const handleDateChange = (direction) => {
+  // Navigate dates
+  const handleDateChange = (deltaDays: number) => {
     const dateObj = new Date(currentDate);
-    dateObj.setDate(dateObj.getDate() + direction);
+    dateObj.setDate(dateObj.getDate() + deltaDays);
     const newDate = dateObj.toISOString().slice(0, 10);
 
-    // Optionally, check if newDate falls within challenge start/end dates
     if (challenge) {
-      const startDate = new Date(challenge.startDate).toISOString().slice(0, 10);
-      const endDate = new Date(challenge.endDate).toISOString().slice(0, 10);
-      if (newDate < startDate || newDate > endDate) return;
+      const start = challenge.startDate.slice(0, 10);
+      const end = challenge.endDate.slice(0, 10);
+      if (newDate < start || newDate > end) return;
     }
 
     setCurrentDate(newDate);
   };
 
   if (loading) {
-    return <div>Loading...</div>;
+    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
   }
 
   if (!challenge) {
-    return <div>No challenge found</div>;
+    return <div className="min-h-screen flex items-center justify-center">No challenge found</div>;
   }
 
-  // Calculate day index for display (e.g., day 1 of total days in the challenge)
-  const totalDays = challenge.progress?.length || 1;
+  const totalDays = challenge.progress?.length ?? 1;
   const dayIndex =
-    challenge.progress?.findIndex(
-      (p) => p.date.slice(0, 10) === currentDate
-    ) + 1 || 1;
+    (challenge.progress?.findIndex((p) => p.date.slice(0, 10) === currentDate) ?? -1) + 1 ||
+    1;
 
   return (
     <div className="p-6 max-w-4xl mx-auto bg-white shadow-lg rounded-lg">
@@ -122,23 +163,17 @@ const ChallengeLog = () => {
         />
       </div>
 
-      {/* Log Date & Progress with Navigation */}
+      {/* Date Navigation */}
       <div className="mt-6 border-t pt-4">
         <div className="flex justify-between items-center">
           <div className="flex items-center text-gray-700">
-            <button
-              onClick={() => handleDateChange(-1)}
-              className="text-green-600 text-xl"
-            >
+            <button onClick={() => handleDateChange(-1)} className="text-green-600 text-xl">
               ←
             </button>
             <span className="ml-2 text-lg font-semibold">
               {new Date(currentDate).toLocaleDateString()}
             </span>
-            <button
-              onClick={() => handleDateChange(1)}
-              className="text-green-600 text-xl ml-2"
-            >
+            <button onClick={() => handleDateChange(1)} className="text-green-600 text-xl ml-2">
               →
             </button>
           </div>
@@ -148,22 +183,22 @@ const ChallengeLog = () => {
         </div>
       </div>
 
-      {/* Table of Behaviors */}
+      {/* Behaviors Table */}
       <table className="w-full mt-4 border-collapse border border-gray-200">
         <thead>
           <tr className="bg-gray-100 text-gray-700">
             <th className="p-3 text-left">Comportamiento</th>
-            <th className="p-3">Valor %</th>
-            <th className="p-3">Status</th>
+            <th className="p-3 text-center">Valor %</th>
+            <th className="p-3 text-center">Status</th>
           </tr>
         </thead>
         <tbody>
-          {behaviors.map((row, index) => (
-            <tr key={index} className="border-t border-gray-200">
-              <td className="p-8 ">{row.description}</td>
+          {behaviors.map((row) => (
+            <tr key={row._id} className="border-t border-gray-200">
+              <td className="p-3">{row.description}</td>
               <td className="p-3 text-center">{row.value}</td>
               <td
-                className={`p-3 max-h-3 text-white text-center font-semibold rounded-md w-24 ${row.color}`}
+                className={`p-3 text-white text-center font-semibold rounded-md w-24 ${row.color}`}
               >
                 {row.status}
               </td>
@@ -172,15 +207,17 @@ const ChallengeLog = () => {
         </tbody>
       </table>
 
-      {/* Link to Bitácora view if needed */}
+      {/* Links */}
       <div className="mt-6 flex justify-end gap-3.5">
-        <Link href="/user/desafio/estadisticas/[slug]" as={`/user/desafio/estadisticas/${slug}`}>
-          <button className="bg-none border-2 border-green-600 hover:bg-green-500 text-green-600 font-bold py-2 px-4 rounded hover:text-white">
-            Estadisticas 
+        <Link
+          href={`/user/desafio/estadisticas/${encodeURIComponent(slug ?? "")}`}
+        >
+          <button className="border-2 border-green-600 hover:bg-green-500 text-green-600 font-bold py-2 px-4 rounded hover:text-white">
+            Estadísticas
           </button>
         </Link>
-        <Link href="bitacora">
-          <button className="bg-green-600 border-2 border-green-600 hover:bg-green-500 text-white font-bold py-2 px-4 rounded">
+        <Link href={`/user/desafio/bitacora/${encodeURIComponent(slug ?? "")}`}>
+          <button className="bg-green-600 hover:bg-green-500 text-white font-bold py-2 px-4 rounded">
             Bitácora de Día
           </button>
         </Link>
