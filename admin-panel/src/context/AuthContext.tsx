@@ -41,7 +41,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const login = async (username: string, password: string) => {
-    const res = await fetch("http://localhost:9090/api/auth/login", {
+    const res = await fetch("http://134.199.238.36:9090/api/auth/login", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"

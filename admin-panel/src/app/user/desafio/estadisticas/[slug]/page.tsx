@@ -44,19 +44,19 @@ const AdminStatsPage = () => {
       try {
         // Fetch challenge info
         const challengeRes = await axios.get(
-          `http://localhost:9090/api/challenges/${slug}`
+          `http://134.199.238.36:9090/api/challenges/${slug}`
         );
         setChallenge(challengeRes.data);
 
         // Fetch challenge progress filtered by cycle
         const progressRes = await axios.get(
-          `http://localhost:9090/api/analisis/challengeProgress?challengeId=${slug}&ciclo=${selectedCycle}`
+          `http://134.199.238.36:9090/api/analisis/challengeProgress?challengeId=${slug}&ciclo=${selectedCycle}`
         );
         setChallengeProgress(progressRes.data);
 
         // Fetch rule progress filtered by cycle
         const ruleRes = await axios.get(
-          `http://localhost:9090/api/analisis/ruleProgress?challengeId=${slug}&ciclo=${selectedCycle}`
+          `http://134.199.238.36:9090/api/analisis/ruleProgress?challengeId=${slug}&ciclo=${selectedCycle}`
         );
         const ruleData = ruleRes.data;
         // Save the original rule data for our mapping table
@@ -77,7 +77,7 @@ const AdminStatsPage = () => {
 
         // Fetch cycle stats
         const cycleRes = await axios.get(
-          `http://localhost:9090/api/analisis/cycleStats?challengeId=${slug}`
+          `http://134.199.238.36:9090/api/analisis/cycleStats?challengeId=${slug}`
         );
         const cycleData = cycleRes.data;
         setCycleStats({
