@@ -44,19 +44,19 @@ const AdminStatsPage = () => {
       try {
         // Fetch challenge info
         const challengeRes = await axios.get(
-          `http://administracionalpha.com/api/challenges/${slug}`
+          `https://administracionalpha.com/api/challenges/${slug}`
         );
         setChallenge(challengeRes.data);
 
         // Fetch challenge progress filtered by cycle
         const progressRes = await axios.get(
-          `http://administracionalpha.com/api/analisis/challengeProgress?challengeId=${slug}&ciclo=${selectedCycle}`
+          `https://administracionalpha.com/api/analisis/challengeProgress?challengeId=${slug}&ciclo=${selectedCycle}`
         );
         setChallengeProgress(progressRes.data);
 
         // Fetch rule progress filtered by cycle
         const ruleRes = await axios.get(
-          `http://administracionalpha.com/api/analisis/ruleProgress?challengeId=${slug}&ciclo=${selectedCycle}`
+          `https://administracionalpha.com/api/analisis/ruleProgress?challengeId=${slug}&ciclo=${selectedCycle}`
         );
         const ruleData = ruleRes.data;
         // Save the original rule data for our mapping table
@@ -77,7 +77,7 @@ const AdminStatsPage = () => {
 
         // Fetch cycle stats
         const cycleRes = await axios.get(
-          `http://administracionalpha.com/api/analisis/cycleStats?challengeId=${slug}`
+          `https://administracionalpha.com/api/analisis/cycleStats?challengeId=${slug}`
         );
         const cycleData = cycleRes.data;
         setCycleStats({
