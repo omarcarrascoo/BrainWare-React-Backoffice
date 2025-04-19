@@ -60,7 +60,7 @@ const ChallengeLog: React.FC = () => {
     }
 
     axios
-      .get<Challenge>(`http://134.199.238.36:9090/api/challenges/${encodeURIComponent(slug)}`)
+      .get<Challenge>(`http://administracionalpha.com/api/challenges/${encodeURIComponent(slug)}`)
       .then((res) => {
         setChallenge(res.data);
       })

@@ -48,13 +48,13 @@ const AdminUserDashboard: React.FC = () => {
     const fetchUserAndChallenges = async (): Promise<void> => {
       try {
         // Petición tipada para User
-        const userResponse = await axios.get<User>(`http://134.199.238.36:9090/api/user/findByUsername/${slug}`);
+        const userResponse = await axios.get<User>(`http://administracionalpha.com/api/user/findByUsername/${slug}`);
         const userData = userResponse.data;
         setUser(userData);
 
         // Petición tipada para Challenge[]
         const challengesResponse = await axios.get<Challenge[]>(
-          `http://134.199.238.36:9090/api/challenges/userChallenge?userId=${userData._id}`
+          `http://administracionalpha.com/api/challenges/userChallenge?userId=${userData._id}`
         );
         setChallenges(challengesResponse.data);
       } catch (err) {

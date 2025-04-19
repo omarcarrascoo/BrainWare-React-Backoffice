@@ -26,7 +26,7 @@ export default function Licenses() {
   // Fetch organizations from the backend on mount
   useEffect(() => {
     axios
-      .get("http://134.199.238.36:9090/api/company")
+      .get("http://administracionalpha.com/api/company")
       .then((response) => {
         console.log(response.data);
         const mapped = response.data.map((org:any) => ({
@@ -63,7 +63,7 @@ export default function Licenses() {
     };
 
     try {
-      const response = await axios.post("http://134.199.238.36:9090/api/company/", payload, {
+      const response = await axios.post("http://administracionalpha.com/api/company/", payload, {
         headers: { "Content-Type": "application/json" },
       });
       const savedOrg = response.data;
@@ -96,7 +96,7 @@ export default function Licenses() {
   // Delete an organization using the DELETE endpoint
   const handleDeleteLicense = async (id:any) => {
     try {
-      await axios.delete(`http://134.199.238.36:9090/api/company/${id}`);
+      await axios.delete(`http://administracionalpha.com/api/company/${id}`);
       setLicenses((prev:any) => prev.filter((license:any) => license._id !== id));
     } catch (err) {
       console.error("Error deleting organization:", err);

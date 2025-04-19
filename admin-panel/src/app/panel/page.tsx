@@ -17,7 +17,7 @@ const Panel = () => {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const response = await axios.get('http://134.199.238.36:9090/api/user');
+        const response = await axios.get('http://administracionalpha.com/api/user');
         setUsers(response.data);
       } catch (error) {
         console.error('Error fetching users:', error);
@@ -43,7 +43,7 @@ const Panel = () => {
   const handleDelete = async (id: string) => {
     if (!window.confirm("Are you sure you want to delete this user?")) return;
     try {
-      await axios.delete(`http://134.199.238.36:9090/api/user/${id}`, {
+      await axios.delete(`http://administracionalpha.com/api/user/${id}`, {
         headers: {
           token: `Bearer ${user?.accessToken}`
         }

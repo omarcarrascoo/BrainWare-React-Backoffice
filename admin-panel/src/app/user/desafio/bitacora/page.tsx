@@ -18,7 +18,7 @@ const Preguntas: React.FC = () => {
   useEffect(() => {
     // Llama al endpoint que devuelve las bitácoras de hoy.
     // Ajusta la ruta según la configuración de tus endpoints.
-    fetch('http://134.199.238.36:9090/api/questions')
+    fetch('http://administracionalpha.com/api/questions')
       .then((response) => response.json())
       .then((data) => setSurveys(data))
       .catch((error) => console.error('Error al obtener las encuestas:', error));
